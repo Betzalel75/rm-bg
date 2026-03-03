@@ -18,7 +18,7 @@ from gi.repository import Gio
 
 try:
     from PIL import Image
-    from rembg import remove
+    from rembg import remove, new_session
     REMBG_AVAILABLE = True
 except ImportError:
     REMBG_AVAILABLE = False
@@ -39,55 +39,13 @@ class RemoveBackgroundPlugin(Gimp.PlugIn):
         procedure.set_image_types("RGB*, GRAY*")
         procedure.set_menu_label("Supprimer l'arrière-plan (rembg)...")
         procedure.add_menu_path("<Image>/Filters/Detourage/")
-        procedure.set_attribution("Assistant", "Assistant", "2024")
+        procedure.set_attribution("Assistant", "Assistant", "2026")
         procedure.set_documentation(
             "Supprime l'arrière-plan du calque actif en utilisant l'IA rembg",
             "Exporte temporairement le calque, applique rembg pour rendre le fond transparent, puis l'importe comme nouveau calque.",
             name
         )
         return procedure
-    
-    # def export_layer_to_temp_file(self, drawable, temp_path):
-    #     """Exporte un calque vers un fichier PNG temporaire"""
-    #     # Créer une nouvelle image temporaire
-    #     width = drawable.get_width()
-    #     height = drawable.get_height()
-        
-    #     # Déterminer le type d'image
-    #     if drawable.has_alpha():
-    #         image_type = Gimp.ImageType.RGBA_IMAGE
-    #     else:
-    #         image_type = Gimp.ImageType.RGB_IMAGE
-        
-    #     # Créer l'image temporaire
-    #     temp_image = Gimp.Image.new(width, height, Gimp.ImageBaseType.RGB)
-        
-    #     # Copier le calque
-    #     temp_layer = drawable.copy()
-    #     temp_image.insert_layer(temp_layer, None, 0)
-        
-    #     # Exporter en PNG
-    #     success = Gimp.get_pdb().run_procedure('file-png-save2', [
-    #         GObject.Value(Gimp.RunMode, Gimp.RunMode.NONINTERACTIVE),
-    #         GObject.Value(Gimp.Image, temp_image),
-    #         GObject.Value(Gimp.Drawable, temp_layer),
-    #         GObject.Value(Gio.File, Gio.File.new_for_path(temp_path)),
-    #         GObject.Value(GObject.TYPE_BOOLEAN, False),  # interlace
-    #         GObject.Value(GObject.TYPE_INT, 0),  # compression level
-    #         GObject.Value(GObject.TYPE_BOOLEAN, False),  # save bkgd
-    #         GObject.Value(GObject.TYPE_BOOLEAN, False),  # save gamma
-    #         GObject.Value(GObject.TYPE_BOOLEAN, False),  # save offset
-    #         GObject.Value(GObject.TYPE_BOOLEAN, False),  # save phys
-    #         GObject.Value(GObject.TYPE_BOOLEAN, False),  # save time
-    #         GObject.Value(GObject.TYPE_BOOLEAN, False),  # save comment
-    #         GObject.Value(GObject.TYPE_BOOLEAN, True),   # save color from paras
-    #         GObject.Value(GObject.TYPE_BOOLEAN, False),  # preserve color of transparent pixels
-    #     ])
-        
-    #     # Nettoyer l'image temporaire
-    #     Gimp.delete(temp_image)
-        
-    #     return success.index(0) == Gimp.PDBStatusType.SUCCESS
     
     def export_layer_to_temp_file(self, drawable, temp_path):
         """Exporte un calque vers un fichier PNG temporaire"""
@@ -108,7 +66,7 @@ class RemoveBackgroundPlugin(Gimp.PlugIn):
         success = Gimp.file_save(Gimp.RunMode.NONINTERACTIVE, temp_image, file)
         
         # Nettoyer
-        Gimp.delete(temp_image)
+        temp_image.delete()
         
         return success
     
@@ -142,7 +100,10 @@ class RemoveBackgroundPlugin(Gimp.PlugIn):
             # 2. Traiter l'image avec rembg via Pillow
             Gimp.progress_init("Analyse de l'image avec l'IA rembg...")
             img = Image.open(temp_in)
-            result = remove(img)
+            
+            # Forcer l'utilisation du CPU pour éviter l'erreur Flatpak/CUDA
+            session = new_session("u2net", providers=['CPUExecutionProvider'])
+            result = remove(img, session=session)
             
             if isinstance(result, bytes):
                 out_img = Image.open(io.BytesIO(result))
@@ -163,7 +124,7 @@ class RemoveBackgroundPlugin(Gimp.PlugIn):
             try:
                 # CORRECTION 2 : Utiliser l'API GIMP 3.0 pour charger l'image
                 loaded_image = Gimp.file_load(Gimp.RunMode.NONINTERACTIVE, file_out)
-                loaded_layers = loaded_image.list_layers()
+                loaded_layers = loaded_image.get_layers()
                 
                 # Regrouper l'insertion dans un bloc d'annulation
                 image.undo_group_start()
@@ -183,7 +144,7 @@ class RemoveBackgroundPlugin(Gimp.PlugIn):
                     image.insert_layer(new_layer, parent, position)
                     
                 # Supprimer l'image temporaire chargée
-                Gimp.delete(loaded_image)
+                loaded_image.delete()
                 image.undo_group_end()
                 Gimp.displays_flush()
                 

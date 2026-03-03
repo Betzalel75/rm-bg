@@ -42,11 +42,25 @@ pip install -r requirements.txt
 
 ## Utilisation
 
+### Droits
+
+- Le script nécessite les droits de lecture et d'écriture sur les fichiers d'entrée et de sortie.
+- Il nécessite également les droits de lecture et d'exécution sur le script lui-même.
+
+```bash
+chmod 555 remove-bg.py
+```
+
 ### Syntaxe de base
 
 ```bash
 python remove-bg.py <fichier_image>
 ```
+
+### Avertissements
+
+- Lors de la première exécution, le modèle ONNX peut être téléchargé automatiquement. Ce processus peut prendre un certain temps.
+
 
 ### Options disponibles
 
@@ -77,7 +91,7 @@ Exemples d'utilisation :
 1. **Supprimer l'arrière-plan d'une image simple :**
 
    ```bash
-   python remove-bg.py photo.jpg
+   ./remove-bg.py photo.jpg
    ```
 
    Génère : `photo_sans_fond.png`
@@ -85,12 +99,12 @@ Exemples d'utilisation :
 2. **Spécifier un nom de fichier de sortie :**
 
    ```bash
-   python remove-bg.py photo.jpg -o resultat.png
+   ./remove-bg.py photo.jpg -o resultat.png
    ```
 
 3. **Utiliser les options longues :**
    ```bash
-   python remove-bg.py --input photo.jpg --output resultat_final.png
+   ./remove-bg.py --input photo.jpg --output resultat_final.png
    ```
 
 ## Formats supportés
@@ -115,6 +129,8 @@ Exemples d'utilisation :
 ```bash
 pip install rembg pillow numpy
 ```
+
+_`NB : il est recommandé d'utiliser un environnement virtuel pour éviter les conflits de dépendances.`_
 
 ### Erreur : "Attribute `save` is not defined on `bytes`"
 
