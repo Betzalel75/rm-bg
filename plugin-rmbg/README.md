@@ -95,14 +95,21 @@ into your GIMP 3.0 plug-ins directory.
 For Flatpak GIMP:
 
 ```
-~/.var/app/org.gimp.GIMP/config/GIMP/3.0/plug-ins/
+~/.config/GIMP/3.0/plug-ins/
 ```
 
 Example:
 
 ```bash
-mkdir -p ~/.var/app/org.gimp.GIMP/config/GIMP/3.0/plug-ins/plugin-rmbg
-cp rmbg.py ~/.var/app/org.gimp.GIMP/config/GIMP/3.0/plug-ins/plugin-rmbg/
+mkdir -p ~/.config/GIMP/3.0/plug-ins/plugin-rmbg
+cp rmbg.py ~/.config/GIMP/3.0/plug-ins/plugin-rmbg/
+```
+
+## Or use the provided script
+
+```bash
+chmod +x install.sh
+./install.sh
 ```
 
 ---
@@ -110,7 +117,7 @@ cp rmbg.py ~/.var/app/org.gimp.GIMP/config/GIMP/3.0/plug-ins/plugin-rmbg/
 ## 🔐 Make the script executable
 
 ```bash
-chmod 555 rmbg.py
+chmod 755 rmbg.py
 ```
 
 This ensures:
@@ -179,7 +186,7 @@ flatpak run --command=python3 org.gimp.GIMP -m pip install "rembg[cpu]" --user
 * Ensure it is inside:
 
   ```
-  ~/.var/app/org.gimp.GIMP/config/GIMP/3.0/plug-ins/
+  ~/.config/GIMP/3.0/plug-ins/
   ```
 * Restart GIMP
 

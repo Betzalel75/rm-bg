@@ -1,0 +1,63 @@
+# French translations for gimp30-plugin-rembg
+# Copyright (C) 2026 Betzalel75
+# This file is distributed under the same license as the gimp30-plugin-rembg package.
+# Betzalel75 <uitg8th8o@mozmail.com>, 2026.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: gimp30-plugin-rembg 1.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2024-01-01 00:00+0000\n"
+"PO-Revision-Date: 2024-01-01 00:00+0000\n"
+"Last-Translator: Betzalel75 <uitg8th8o@mozmail.com>\n"
+"Language-Team: French\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+msgid "Remove Background (rembg)"
+msgstr "Supprimer l'arrière-plan (rembg)"
+
+msgid "Removes the background from the active layer using rembg AI"
+msgstr "Supprime l'arrière-plan du calque actif en utilisant l'IA rembg"
+
+msgid "Temporarily exports the layer, applies rembg to make the background transparent, then imports it as a new layer."
+msgstr "Exporte temporairement le calque, applique rembg pour rendre le fond transparent, puis l'importe comme nouveau calque."
+
+msgid "The 'rembg' or 'Pillow' library is not installed in GIMP's Python environment.\nPlease run: pip install rembg pillow"
+msgstr "La bibliothèque 'rembg' ou 'Pillow' n'est pas installée dans l'environnement Python de GIMP.\nVeuillez exécuter : pip install rembg pillow"
+
+msgid "rembg missing"
+msgstr "rembg manquant"
+
+msgid "Please select exactly one layer."
+msgstr "Veuillez sélectionner exactement un seul calque."
+
+msgid "Invalid selection"
+msgstr "Sélection invalide"
+
+msgid "Exporting layer..."
+msgstr "Exportation du calque..."
+
+msgid "Failed to temporarily export the layer."
+msgstr "Échec de l'exportation temporaire du calque."
+
+msgid "Analyzing image with rembg AI..."
+msgstr "Analyse de l'image avec l'IA rembg..."
+
+msgid "Unexpected type returned by rembg: {}"
+msgstr "Type inattendu retourné par rembg : {}"
+
+msgid "Importing result..."
+msgstr "Importation du résultat..."
+
+msgid " (no background)"
+msgstr " (sans fond)"
+
+msgid "Failed to import the cutout layer: {}"
+msgstr "Échec de l'importation du calque détouré : {}"
+
+msgid "Error during processing: {}"
+msgstr "Erreur lors du traitement : {}"

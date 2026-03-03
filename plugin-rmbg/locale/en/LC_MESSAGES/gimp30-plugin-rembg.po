@@ -1,0 +1,65 @@
+# English translations for gimp30-plugin-rembg
+# Copyright (C) 2026 Betzalel75
+# This file is distributed under the same license as the gimp30-plugin-rembg package.
+# Betzalel75 <uitg8th8o@mozmail.com>, 2026.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: gimp30-plugin-rembg 1.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2024-01-01 00:00+0000\n"
+"PO-Revision-Date: 2024-01-01 00:00+0000\n"
+"Last-Translator: Betzalel75 <uitg8th8o@mozmail.com>\n"
+"Language-Team: English\n"
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+# Les messages en anglais peuvent rester identiques aux originaux
+# ou être ajustés pour la clarté
+msgid "Remove Background (rembg)"
+msgstr "Remove Background (rembg)"
+
+msgid "Removes the background from the active layer using rembg AI"
+msgstr "Removes the background from the active layer using rembg AI"
+
+msgid "Temporarily exports the layer, applies rembg to make the background transparent, then imports it as a new layer."
+msgstr "Temporarily exports the layer, applies rembg to make the background transparent, then imports it as a new layer."
+
+msgid "The 'rembg' or 'Pillow' library is not installed in GIMP's Python environment.\nPlease run: pip install rembg pillow"
+msgstr "The 'rembg' or 'Pillow' library is not installed in GIMP's Python environment.\nPlease run: pip install rembg pillow"
+
+msgid "rembg missing"
+msgstr "rembg missing"
+
+msgid "Please select exactly one layer."
+msgstr "Please select exactly one layer."
+
+msgid "Invalid selection"
+msgstr "Invalid selection"
+
+msgid "Exporting layer..."
+msgstr "Exporting layer..."
+
+msgid "Failed to temporarily export the layer."
+msgstr "Failed to temporarily export the layer."
+
+msgid "Analyzing image with rembg AI..."
+msgstr "Analyzing image with rembg AI..."
+
+msgid "Unexpected type returned by rembg: {}"
+msgstr "Unexpected type returned by rembg: {}"
+
+msgid "Importing result..."
+msgstr "Importing result..."
+
+msgid " (no background)"
+msgstr " (no background)"
+
+msgid "Failed to import the cutout layer: {}"
+msgstr "Failed to import the cutout layer: {}"
+
+msgid "Error during processing: {}"
+msgstr "Error during processing: {}"

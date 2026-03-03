@@ -8,6 +8,7 @@ import numpy as np
 import tempfile
 import os
 import sys
+import gettext
 
 import gi
 gi.require_version('Gimp', '3.0')
@@ -28,6 +29,29 @@ if flatpak_python_path not in sys.path:
     sys.path.append(flatpak_python_path)
 
 
+# Configuration de l'internationalisation
+# ========================================
+# Définir le domaine de traduction
+DOMAIN = "gimp30-plugin-rembg"
+# Chemin où se trouvent les fichiers de traduction (.mo)
+LOCALE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "locale")
+
+# Initialiser gettext
+try:
+    # Essayer de charger les traductions
+    translation = gettext.translation(DOMAIN, LOCALE_DIR, fallback=True)
+    _ = translation.gettext
+except Exception:
+    # Fallback si les traductions ne sont pas disponibles
+    def _(s):
+        return s
+
+# Fonction pour formater les messages avec des variables
+def N_(message):
+    """Marqueur pour les chaînes à traduire (sans traduction immédiate)"""
+    return message
+
+
 class RemoveBackgroundPlugin(Gimp.PlugIn):
     
     def do_query_procedures(self):
@@ -37,12 +61,12 @@ class RemoveBackgroundPlugin(Gimp.PlugIn):
         procedure = Gimp.ImageProcedure.new(self, name, Gimp.PDBProcType.PLUGIN, self.run, None)
         
         procedure.set_image_types("RGB*, GRAY*")
-        procedure.set_menu_label("Supprimer l'arrière-plan (rembg)...")
+        procedure.set_menu_label(_("Remove Background (rembg)"))
         procedure.add_menu_path("<Image>/Filters/Detourage/")
-        procedure.set_attribution("Assistant", "Assistant", "2026")
+        procedure.set_attribution("Betzalel75", "Betzalel75", "2026")
         procedure.set_documentation(
-            "Supprime l'arrière-plan du calque actif en utilisant l'IA rembg",
-            "Exporte temporairement le calque, applique rembg pour rendre le fond transparent, puis l'importe comme nouveau calque.",
+            _("Removes the background from the active layer using rembg AI"),
+            _("Temporarily exports the layer, applies rembg to make the background transparent, then imports it as a new layer."),
             name
         )
         return procedure
@@ -73,14 +97,14 @@ class RemoveBackgroundPlugin(Gimp.PlugIn):
     def run(self, procedure, run_mode, image, drawables, config, run_data):
         # Vérification des dépendances
         if not REMBG_AVAILABLE:
-            Gimp.message("La bibliothèque 'rembg' ou 'Pillow' n'est pas installée dans l'environnement Python de GIMP.\n"
-                         "Veuillez exécuter : pip install rembg pillow")
-            return procedure.new_return_values(Gimp.PDBStatusType.EXECUTION_ERROR, GLib.Error('rembg manquant'))
+            Gimp.message(_("The 'rembg' or 'Pillow' library is not installed in GIMP's Python environment.\n"
+                                     "Please run: pip install rembg pillow"))
+            return procedure.new_return_values(Gimp.PDBStatusType.EXECUTION_ERROR, GLib.Error(_('rembg missing')))
         
         # Utilisez len(drawables) au lieu de l'ancien n_drawables
         if len(drawables) != 1:
-            Gimp.message("Veuillez sélectionner exactement un seul calque.")
-            return procedure.new_return_values(Gimp.PDBStatusType.CALLING_ERROR, GLib.Error('Sélection invalide'))
+            Gimp.message(_("Please select exactly one layer."))
+            return procedure.new_return_values(Gimp.PDBStatusType.CALLING_ERROR, GLib.Error(_('Invalid selection')))
         
         drawable = drawables[0]
         
@@ -92,13 +116,13 @@ class RemoveBackgroundPlugin(Gimp.PlugIn):
         
         try:
             # 1. Sauvegarder le calque sélectionné dans un fichier PNG temporaire
-            Gimp.progress_init("Exportation du calque...")
+            Gimp.progress_init(_("Exporting layer..."))
             
             if not self.export_layer_to_temp_file(drawable, temp_in):
-                raise Exception("Échec de l'exportation temporaire du calque.")
+                raise Exception(_("Failed to temporarily export the layer."))
             
             # 2. Traiter l'image avec rembg via Pillow
-            Gimp.progress_init("Analyse de l'image avec l'IA rembg...")
+            Gimp.progress_init(_("Analyzing image with rembg AI..."))
             img = Image.open(temp_in)
             
             # Forcer l'utilisation du CPU pour éviter l'erreur Flatpak/CUDA
@@ -112,12 +136,12 @@ class RemoveBackgroundPlugin(Gimp.PlugIn):
             elif isinstance(result, Image.Image):
                 out_img = result
             else:
-                raise TypeError(f"Type inattendu retourné par rembg: {type(result)}")
+                raise TypeError(_("Unexpected type returned by rembg: {}").format(type(result)))
             
             out_img.save(temp_out, format="PNG")
             
             # 3. Charger le fichier PNG transparent résultant
-            Gimp.progress_init("Importation du résultat...")
+            Gimp.progress_init(_("Importing result..."))
             
             file_out = Gio.File.new_for_path(temp_out)
                         
@@ -132,7 +156,7 @@ class RemoveBackgroundPlugin(Gimp.PlugIn):
                 for loaded_layer in loaded_layers:
                     # CORRECTION 1 : Créer le nouveau calque en le liant à l'image principale
                     new_layer = Gimp.Layer.new_from_drawable(loaded_layer, image)
-                    new_layer.set_name(drawable.get_name() + " (sans fond)")
+                    new_layer.set_name(drawable.get_name() + _(" (no background)"))
                     
                     # Positionner le nouveau calque juste au-dessus du calque d'origine
                     parent = drawable.get_parent()
@@ -149,10 +173,10 @@ class RemoveBackgroundPlugin(Gimp.PlugIn):
                 Gimp.displays_flush()
                 
             except Exception as e:
-                raise Exception(f"Échec de l'importation du calque détouré : {str(e)}")
+                raise Exception(_("Failed to import the cutout layer: {}").format(str(e)))
         
         except Exception as e:
-            Gimp.message(f"Erreur lors du traitement : {str(e)}")
+            Gimp.message(_("Error during processing: {}").format(str(e)))
             return procedure.new_return_values(Gimp.PDBStatusType.EXECUTION_ERROR, GLib.Error(str(e)))
         
         finally:
