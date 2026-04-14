@@ -17,8 +17,9 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-# Les messages en anglais peuvent rester identiques aux originaux
-# ou être ajustés pour la clarté
+msgid "<Image>/AI/Clipping/"
+msgstr "<Image>/AI/Clipping/"
+
 msgid "Remove Background (rembg)"
 msgstr "Remove Background (rembg)"
 

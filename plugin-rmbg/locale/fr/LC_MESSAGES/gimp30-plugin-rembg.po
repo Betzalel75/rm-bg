@@ -17,6 +17,10 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
+
+msgid "<Image>/AI/Clipping/"
+msgstr "<Image>/IA/Détourage/"
+
 msgid "Remove Background (rembg)"
 msgstr "Supprimer l'arrière-plan (rembg)"
 

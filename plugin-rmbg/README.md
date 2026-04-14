@@ -12,7 +12,7 @@ The plugin exports the selected layer to a temporary PNG file, processes it with
 * Adds a menu entry under:
 
 ```
-Image → Filters → Detourage → Supprimer l'arrière-plan (rembg)...
+Image → AI → Clipping → Remove Background (rembg)
 ```
 
 * Processes **RGB and GRAY images**
@@ -134,7 +134,7 @@ This ensures:
 3. Go to:
 
 ```
-Image → Filters → Detourage → Supprimer l'arrière-plan (rembg)...
+Image → AI → Clipping → Remove Background (rembg)
 ```
 
 4. The plugin will:
