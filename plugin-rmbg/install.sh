@@ -295,6 +295,24 @@ function install_system_deps() {
     echo "  3) Skip (I will configure manually later)"
     read -rp "Your choice [1/2/3]: " py_choice
 
+    # Ask about GPU acceleration early (used by cases 1 and 2)
+    USE_GPU=false
+    if [[ "$py_choice" =~ ^[12]$ ]]; then
+        echo
+        log_info "GPU Acceleration"
+        echo "  CPU mode:  Works everywhere, moderate speed (a few seconds)"
+        echo "  GPU mode:  Ultra-fast (< 1 sec), requires NVIDIA CUDA or AMD ROCm"
+        echo
+        if ask_yes_no "Use GPU acceleration? (requires CUDA/ROCm drivers)" "n"; then
+            USE_GPU=true
+            REMBG_PKG="rembg[gpu]"
+            log_info "GPU mode selected — will install onnxruntime-gpu"
+        else
+            REMBG_PKG="rembg"
+            log_info "CPU mode selected"
+        fi
+    fi
+
     case "$py_choice" in
         1)
             VENV_DIR="$HOME/.local/share/gimp-rembg-venv"
@@ -312,7 +330,7 @@ function install_system_deps() {
             python3 -m venv "$VENV_DIR"
             source "$VENV_DIR/bin/activate"
             pip install --upgrade pip
-            pip install rembg pillow
+            pip install "$REMBG_PKG" pillow numpy
 
             echo "$VENV_DIR" > "$INSTALL_DIR/venv_path.txt"
             log_success "Virtual environment configured and dependencies installed."
@@ -330,13 +348,19 @@ function install_system_deps() {
             if ! "$VENV_PATH/bin/python" -c "import rembg" 2>/dev/null; then
                 log_warning "rembg not found in this venv."
                 if ask_yes_no "Install rembg and pillow now?"; then
-                    pip install rembg pillow
+                    pip install "$REMBG_PKG" pillow numpy
                 else
                     log_error "Plugin will not work without rembg."
                     exit 1
                 fi
             else
                 log_success "rembg is already installed."
+                if $USE_GPU; then
+                    log_warning "rembg already installed, but GPU extras may be missing."
+                    if ask_yes_no "Install onnxruntime-gpu now?"; then
+                        pip install onnxruntime-gpu
+                    fi
+                fi
             fi
 
             echo "$VENV_PATH" > "$INSTALL_DIR/venv_path.txt"

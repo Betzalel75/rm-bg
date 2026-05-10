@@ -59,6 +59,25 @@ except ImportError:
     REMBG_AVAILABLE = False
 
 
+def create_rembg_session(model_name="u2net"):
+    """
+    Create a rembg session with the best available execution provider.
+
+    Tries GPU-accelerated providers first (CUDA, ROCm, OpenVINO, TensorRT),
+    then falls back to CPU. Each unavailable provider is silently skipped
+    by ONNX Runtime — safe for both Flatpak (CPU-only) and system (GPU)
+    installations.
+    """
+    provider_candidates = [
+        'CUDAExecutionProvider',        # NVIDIA GPU (CUDA)
+        'ROCMExecutionProvider',        # AMD GPU (ROCm)
+        'OpenVINOExecutionProvider',    # Intel GPU / accelerators
+        'TensorrtExecutionProvider',    # NVIDIA TensorRT
+        'CPUExecutionProvider',         # Always available fallback
+    ]
+    return new_session(model_name, providers=provider_candidates)
+
+
 DOMAIN = "gimp30-plugin-rembg"
 LOCALE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "locale")
 
@@ -137,7 +156,7 @@ class RemoveBackgroundPlugin(Gimp.PlugIn):
             Gimp.progress_init(_("Analyzing image with rembg AI..."))
             img = Image.open(temp_in)
             
-            session = new_session("u2net", providers=['CPUExecutionProvider'])
+            session = create_rembg_session()
             result = remove(img, session=session)
             
             if isinstance(result, bytes):
