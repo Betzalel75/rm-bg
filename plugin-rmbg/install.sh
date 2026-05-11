@@ -8,7 +8,7 @@ IFS=$'\n\t'
 # ==============================
 
 REPO_URL="https://github.com/Betzalel75/rm-bg.git"
-PLUGIN_SUBDIR="plugin-rmbg"
+PLUGIN_SUBDIR="rmbg"
 TMP_DIR="$(mktemp -d)"
 FLATPAK_APP_ID="org.gimp.GIMP"
 
@@ -386,7 +386,7 @@ function main(){
     install_packages
 
     GIMP_VERSION_DIR=$(get_gimp_major_minor)
-    INSTALL_DIR="$HOME/.config/GIMP/$GIMP_VERSION_DIR/plug-ins/plugin-rmbg"
+    INSTALL_DIR="$HOME/.config/GIMP/$GIMP_VERSION_DIR/plug-ins/$PLUGIN_SUBDIR"
     log_info "GIMP configuration directory: $HOME/.config/GIMP/$GIMP_VERSION_DIR"
     sleep 2
 
