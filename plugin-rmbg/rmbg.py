@@ -59,23 +59,32 @@ except ImportError:
     REMBG_AVAILABLE = False
 
 
-def create_rembg_session(model_name="u2net"):
+def create_rembg_session(model_name="birefnet-general"):
     """
-    Create a rembg session with the best available execution provider.
+    Create a rembg session auto-detecting the best execution provider.
 
-    Tries GPU-accelerated providers first (CUDA, ROCm, OpenVINO, TensorRT),
-    then falls back to CPU. Each unavailable provider is silently skipped
-    by ONNX Runtime — safe for both Flatpak (CPU-only) and system (GPU)
-    installations.
+    Queries ONNX Runtime for actually available providers and selects
+    the first matching GPU backend in priority order:
+      NVIDIA → AMD → Intel → CPU fallback.
+    TensorRT is deliberately excluded from auto-detection because it
+    requires a separate NVIDIA TensorRT SDK (libnvinfer.so.10) that
+    most users don't have; requesting it triggers noisy EP Errors.
     """
-    provider_candidates = [
+    import onnxruntime as ort
+
+    available = ort.get_available_providers()
+
+    # Priority: dedicated GPUs first, then integrated, then CPU
+    preferred = [
         'CUDAExecutionProvider',        # NVIDIA GPU (CUDA)
         'ROCMExecutionProvider',        # AMD GPU (ROCm)
         'OpenVINOExecutionProvider',    # Intel GPU / accelerators
-        'TensorrtExecutionProvider',    # NVIDIA TensorRT
-        'CPUExecutionProvider',         # Always available fallback
+        'CPUExecutionProvider',         # Universal fallback
     ]
-    return new_session(model_name, providers=provider_candidates)
+
+    providers = [p for p in preferred if p in available]
+
+    return new_session(model_name, providers=providers)
 
 
 DOMAIN = "gimp30-plugin-rembg"

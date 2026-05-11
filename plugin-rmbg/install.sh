@@ -113,6 +113,68 @@ function install_with_package_manager() {
 }
 
 # ==============================
+# GPU detection
+# ==============================
+
+function detect_gpu() {
+    # Returns: nvidia, amd, intel, or unknown
+    # Prioritizes discrete GPUs when multiple are present
+    if ! is_installed lspci; then
+        echo "unknown"
+        return
+    fi
+
+    local lspci_output
+    lspci_output=$(lspci 2>/dev/null) || true
+
+    if echo "$lspci_output" | grep -qiE 'vga.*nvidia|3d.*nvidia'; then
+        echo "nvidia"
+    elif echo "$lspci_output" | grep -qiE 'vga.*(amd|ati|radeon)'; then
+        echo "amd"
+    elif echo "$lspci_output" | grep -qiE 'vga.*intel'; then
+        echo "intel"
+    else
+        echo "unknown"
+    fi
+}
+
+function check_nvidia_drivers() {
+    if is_installed nvidia-smi; then
+        local driver_ver
+        driver_ver=$(nvidia-smi --query-gpu=driver_version --format=csv,noheader 2>/dev/null | head -1)
+        if [[ -n "$driver_ver" ]]; then
+            log_success "NVIDIA driver $driver_ver detected"
+            return 0
+        fi
+    fi
+    log_warning "NVIDIA GPU detected but nvidia-smi not found"
+    log_info "Install NVIDIA drivers: https://www.nvidia.com/download/"
+    return 1
+}
+
+function check_amd_drivers() {
+    if is_installed rocm-smi; then
+        log_success "ROCm detected"
+        return 0
+    elif is_installed rocminfo; then
+        log_success "ROCm tools detected"
+        return 0
+    fi
+    log_warning "AMD GPU detected but ROCm not found"
+    log_info "Install ROCm: https://rocm.docs.amd.com/"
+    return 1
+}
+
+function check_intel_drivers() {
+    if lsmod 2>/dev/null | grep -qi i915; then
+        log_success "Intel i915 kernel module loaded"
+        return 0
+    fi
+    log_warning "Intel GPU detected but i915 module not found"
+    return 1
+}
+
+# ==============================
 # GIMP installation detection
 # ==============================
 
@@ -295,15 +357,50 @@ function install_system_deps() {
     echo "  3) Skip (I will configure manually later)"
     read -rp "Your choice [1/2/3]: " py_choice
 
-    # Ask about GPU acceleration early (used by cases 1 and 2)
+    # --- GPU detection and recommendation ---
     USE_GPU=false
     if [[ "$py_choice" =~ ^[12]$ ]]; then
         echo
         log_info "GPU Acceleration"
         echo "  CPU mode:  Works everywhere, moderate speed (a few seconds)"
-        echo "  GPU mode:  Ultra-fast (< 1 sec), requires NVIDIA CUDA or AMD ROCm"
+        echo "  GPU mode:  Ultra-fast (< 1 sec), requires compatible GPU drivers"
+
+        # Detect GPU and check drivers
+        DETECTED_GPU=$(detect_gpu)
+        GPU_DEFAULT="n"
+
+        case "$DETECTED_GPU" in
+            nvidia)
+                log_info "Detected GPU vendor: NVIDIA"
+                check_nvidia_drivers || true
+                if is_installed nvidia-smi; then
+                    GPU_DEFAULT="y"
+                    log_info "NVIDIA GPU with working drivers — GPU mode recommended"
+                fi
+                ;;
+            amd)
+                log_info "Detected GPU vendor: AMD"
+                check_amd_drivers || true
+                if is_installed rocm-smi || is_installed rocminfo; then
+                    GPU_DEFAULT="y"
+                    log_info "AMD GPU with ROCm detected — GPU mode recommended"
+                else
+                    log_info "ROCm not detected. GPU mode requires ROCm: https://rocm.docs.amd.com/"
+                fi
+                ;;
+            intel)
+                log_info "Detected GPU vendor: Intel"
+                check_intel_drivers || true
+                log_info "Intel GPUs may work with OpenVINO. GPU mode provides onnxruntime-gpu."
+                ;;
+            *)
+                log_info "No supported GPU detected via lspci."
+                log_info "GPU mode can still be tried if you have drivers installed manually."
+                ;;
+        esac
+
         echo
-        if ask_yes_no "Use GPU acceleration? (requires CUDA/ROCm drivers)" "n"; then
+        if ask_yes_no "Use GPU acceleration?" "$GPU_DEFAULT"; then
             USE_GPU=true
             REMBG_PKG="rembg[gpu]"
             log_info "GPU mode selected — will install onnxruntime-gpu"
