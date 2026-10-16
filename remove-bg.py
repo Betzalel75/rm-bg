@@ -11,6 +11,20 @@ from pathlib import Path
 
 import numpy as np
 from PIL import Image
+
+# Les roues pip `nvidia-*` installent les bibliothèques CUDA/cuDNN dans
+# site-packages, en dehors du chemin de recherche du linker dynamique.
+# Sans ce préchargement, onnxruntime-gpu détecte le provider CUDA mais échoue
+# à le charger (libcublasLt.so.13 introuvable) et retombe silencieusement sur CPU.
+# Sans effet si CUDA est absent ou si onnxruntime est la version CPU.
+try:
+    import onnxruntime as ort
+
+    if hasattr(ort, "preload_dlls"):
+        ort.preload_dlls()
+except ImportError:
+    pass
+
 from rembg import remove
 
 
