@@ -72,6 +72,16 @@ def create_rembg_session(model_name="birefnet-general"):
     """
     import onnxruntime as ort
 
+     # Make the CUDA/cuDNN runtime shipped as NVIDIA pip wheels visible to
+        # onnxruntime-gpu. Without this the CUDA provider is detected but fails
+        # to load (libcublasLt.so.12 not found) and silently falls back to CPU.
+    preload_dlls = getattr(ort, "preload_dlls", None)
+    if preload_dlls is not None:
+        try:
+            preload_dlls()
+        except Exception:
+            pass
+
     available = ort.get_available_providers()
 
     # Priority: dedicated GPUs first, then integrated, then CPU
